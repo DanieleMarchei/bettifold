@@ -1,2 +1,5 @@
 ASPRAlign-config.txt
 ASPRAlign.jar
+output/
+test/
+__pycache__/

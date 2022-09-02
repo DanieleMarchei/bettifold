@@ -99,8 +99,7 @@ def my_distance(file1, file2):
 def protein_bond(bond : bf.Bond):
     pass
 
-#                                       remember : 1-based tuple
-def my_constraint1(seq : str, folding : tuple[tuple[int,int]]):
+def my_constraint1(folding : tuple[bf.Bond]):
     pass
 
 
@@ -109,7 +108,7 @@ output = bf.bettifold("MLVPNGEAADYRARKGVLVV",
                        folding_constraints = [my_constraint1, bf.max_bonds(10)],
                        distance_func = my_distance,
                        n_foldings = 1000,
-                       output = "protein-test",
+                       folder = "protein-test",
                        maxdim = 3
                        )
 

@@ -7,7 +7,6 @@ output = bf.bettifold("UCCACAGGCAG",
                        bond_constraints = [bf.watson_creek, bf.min_bond_len(4)],
                        folding_constraints = [bf.min_bonds(2), bf.max_bonds(5)],
                        folder = "rna-test",
-                       use_mds = False,
                        maxdim = 2
                        )
 

@@ -107,7 +107,7 @@ def bettifold(seq,
               distance_func = aspra,
               folder = "output",
               n_foldings = "all",
-              use_mds = True,
+              use_mds = False,
               maxdim = 2):
 
     import os
@@ -184,7 +184,7 @@ def bettifold(seq,
 
     output = {
         "distances" : distances,
-        "points" : X,
+        "mds_emb" : X,
         "rips" : rips
     }
 

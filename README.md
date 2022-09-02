@@ -1,6 +1,6 @@
 # BettiFold
 
-This a code implemetation for the method proposed by the paper ``Topological Analysis of RNA Folding Space" by Daniele Marchei and Emanuela Merelli.
+This is a code implemetation for the method proposed by the paper ``Topological Analysis of RNA Folding Space" by Daniele Marchei and Emanuela Merelli.
 
 This code allows the user to input a single RNA primary structure and obtain in output a Vietoris-Rips filtration of its folding space.
 

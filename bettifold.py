@@ -106,7 +106,8 @@ def bettifold(seq,
               folding_constraints = [],
               distance_func = aspra,
               folder = "output",
-              n_foldings = "all", #all, number
+              n_foldings = "all",
+              use_mds = True,
               maxdim = 2):
 
     import os
@@ -158,30 +159,28 @@ def bettifold(seq,
             pairs.add((f1,f2))
 
 
-    max_d = 0
     for f1,f2 in tqdm(pairs):
         i,j = int(f1), int(f2)
         path_f1 = f"{folder}/{f1}"
         path_f2 = f"{folder}/{f2}"
         distances[i,j] = distance_func(path_f1,path_f2)
         distances[j,i] = distances[i,j]
-        if distances[i,j] > max_d:
-            max_d = distances[i,j]
 
-    # normalization
-    # distances = distances / max_d
-
-    print("COMPUTING MDS")
-
-    mds = MDS(metric = True, dissimilarity="precomputed")
-    X = mds.fit_transform(distances)
-
-
-    print("COMPUTING RIPS")
 
     rips = Rips(maxdim = maxdim)
-    #TODO : check if we can feed in the distances directly, without mds
-    rips.fit_transform(X)
+    X = None
+    if use_mds:
+        print("COMPUTING MDS")
+        mds = MDS(metric = True, dissimilarity="precomputed")
+        X = mds.fit_transform(distances)
+
+        print("COMPUTING RIPS")
+        rips.fit_transform(X, distance_matrix = False)
+
+    else:
+        print("COMPUTING RIPS")
+        rips.fit_transform(distances, distance_matrix = True)
+
 
     output = {
         "distances" : distances,

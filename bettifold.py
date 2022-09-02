@@ -1,3 +1,15 @@
+from dataclasses import dataclass
+
+@dataclass
+class Bond:
+    idxs : tuple[int, int]
+    nucl : tuple[str, str]
+
+    def __repr__(self):
+        return f"({self.idxs[0]},{self.idxs[1]})"
+
+
+
 WATSON_CREEK_WOBBLE = {
     "A" : ["U"],
     "U" : ["A", "G"],
@@ -12,7 +24,6 @@ WATSON_CREEK = {
     "G" : ["C"],
 }
 
-
 def aspra(file1, file2):
     import subprocess
 
@@ -26,42 +37,41 @@ def aspra(file1, file2):
 # ------------ BOND CONSTRAINTS ------------
 
 def min_bond_len(n):
-    return lambda rna_bond : abs(rna_bond[0][0] - rna_bond[0][1]) >= n
+    return lambda bond : abs(bond.idxs[0] - bond.idxs[1]) >= n
 
 def max_bond_len(n):
-    return lambda rna_bond : abs(rna_bond[0][0] - rna_bond[0][1]) <= n
+    return lambda bond : abs(bond.idxs[0] - bond.idxs[1]) <= n
 
-def watson_creek_wobble(rna_bond):
-    return rna_bond[1][1] in WATSON_CREEK_WOBBLE[rna_bond[1][0]]
+def watson_creek_wobble(bond):
+    return bond.nucl[1] in WATSON_CREEK_WOBBLE[bond.nucl[0]]
 
-def watson_creek(rna_bond):
-    return rna_bond[1][1] in WATSON_CREEK[rna_bond[1][0]]
+def watson_creek(bond):
+    return bond.nucl[1] in WATSON_CREEK[bond.nucl[0]]
 
 
 # ------------ FOLDING CONSTRAINTS ------------
 
 def min_bonds(n):
-    return lambda rna, folding : len(folding) >= n
+    return lambda folding : len(folding) >= n
 
 def max_bonds(n):
-    return lambda rna, folding : len(folding) <= n
+    return lambda folding : len(folding) <= n
 
 # ------------
 
-def _is_valid_folding(rna, folding, bond_constraints, folding_constraints):
+def _is_valid_folding(folding, bond_constraints, folding_constraints):
 
     for cons in folding_constraints:
-        if not cons(rna, folding):
+        if not cons(folding):
             return False
 
     consumed_nucleotides = set()
     for bond in folding:
-        i,j = bond
-        rna_bond = (bond, (rna[i-1],rna[j-1]))
         for cons in bond_constraints:
-            if not cons(rna_bond):
+            if not cons(bond):
                 return False
 
+        i,j = bond.idxs
         if i in consumed_nucleotides or j in consumed_nucleotides:
             return False
 
@@ -71,16 +81,17 @@ def _is_valid_folding(rna, folding, bond_constraints, folding_constraints):
     return True
 
 
-def _all_foldings(rna, bond_constraints, folding_constraints):
+def _all_foldings(seq, bond_constraints, folding_constraints):
     from itertools import combinations
 
-    n = len(rna)
+    n = len(seq)
     possible_edges = list(combinations(range(1,n+1), 2))
     for k in range(1, n//2 + 1):
         foldings = combinations(possible_edges, k)
         for f in foldings:
-            if _is_valid_folding(rna,f, bond_constraints, folding_constraints):
-                yield f
+            _f = tuple([Bond((i,j), (seq[i-1], seq[j-1])) for i,j in f])
+            if _is_valid_folding(_f, bond_constraints, folding_constraints):
+                yield _f
 
 def _sample_foldings(n_samples):
     raise NotImplementedError("Random sampling of foldings has not been implemented yet.")
@@ -90,39 +101,42 @@ def _sample_foldings(n_samples):
 
 
 
-def bettifold(rna, 
+def bettifold(seq, 
               bond_constraints = [watson_creek_wobble, min_bond_len(4)],
               folding_constraints = [],
               distance_func = aspra,
               folder = "output",
-              n_samples = "all", #all, number
+              n_foldings = "all", #all, number
               maxdim = 2):
 
     import os
+    import shutil
     import numpy as np
     from tqdm import tqdm
     from sklearn.manifold import MDS
     from ripser import Rips
 
     
-    if n_samples == "all":
+    if n_foldings == "all":
         sample_foldings = _all_foldings
-    elif type(n_samples) == int:
-        sample_foldings = _sample_foldings(n_samples)
+    elif type(n_foldings) == int:
+        sample_foldings = _sample_foldings(n_foldings)
     else:
         raise TypeError("The argument 'sampling' can only take values in (\"all\" | int).")
 
 
-    if not os.path.exists(folder):
-        os.mkdir(folder)
+    if os.path.exists(folder):
+        shutil.rmtree(folder)
+    
+    os.mkdir(folder)
 
 
 
     print("COMPUTING FOLDINGS")
 
-    for i, folding in tqdm(enumerate(sample_foldings(rna, bond_constraints, folding_constraints))):
+    for i, folding in tqdm(enumerate(sample_foldings(seq, bond_constraints, folding_constraints))):
         with open(f"{folder}/{i}", "w") as f:
-            f.write(rna + "\n")
+            f.write(seq + "\n")
             bonds = ";".join([str(b).replace(" ","") for b in folding])
             f.write(bonds)
 
@@ -170,9 +184,9 @@ def bettifold(rna,
     rips.fit_transform(X)
 
     output = {
-        "rips" : rips,
+        "distances" : distances,
         "points" : X,
-        "distances" : distances
+        "rips" : rips
     }
 
     return output

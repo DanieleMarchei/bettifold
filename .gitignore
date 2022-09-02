@@ -2,4 +2,6 @@ ASPRAlign-config.txt
 ASPRAlign.jar
 output/
 test/
+rna-test/
+protein-test/
 __pycache__/

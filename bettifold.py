@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-# from multiprocessing import Pool
 from pathos.multiprocessing import ProcessingPool as Pool
 
 
@@ -95,6 +94,7 @@ def _all_foldings_k(seq, bond_constraints, folding_constraints, possible_edges, 
         _f = tuple([Bond((i,j), (seq[i-1], seq[j-1])) for i,j in f])
         if _is_valid_folding(bond_constraints, folding_constraints, _f):
             vaild_foldings.add(_f)
+            
     return vaild_foldings
 
 def _all_foldings(seq, bond_constraints, folding_constraints, n_processes = None):

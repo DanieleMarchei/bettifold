@@ -1,4 +1,6 @@
 from dataclasses import dataclass
+from multiprocessing import Pool
+
 
 @dataclass
 class Bond:
@@ -100,6 +102,14 @@ def _sample_foldings(n_samples):
     # return _sample
 
 
+def _dist(dist_func, folder, files):
+    f1,f2 = files
+    i,j = int(f1), int(f2)
+    path_f1 = f"{folder}/{f1}"
+    path_f2 = f"{folder}/{f2}"
+
+    return i,j,dist_func(path_f1,path_f2)
+
 
 def bettifold(seq, 
               bond_constraints = [watson_creek_wobble, min_bond_len(4)],
@@ -108,7 +118,8 @@ def bettifold(seq,
               folder = "output",
               n_foldings = "all",
               use_mds = False,
-              maxdim = 2):
+              maxdim = 2,
+              n_processes = None):
 
     import os
     import shutil
@@ -116,6 +127,7 @@ def bettifold(seq,
     from tqdm import tqdm
     from sklearn.manifold import MDS
     from ripser import Rips
+    from functools import partial
 
     
     if n_foldings == "all":
@@ -157,14 +169,15 @@ def bettifold(seq,
                 continue
 
             pairs.add((f1,f2))
+    
 
+    with Pool(n_processes) as p:
+        _d = partial(_dist, distance_func, folder)
+        results = p.imap_unordered(_d, pairs)
 
-    for f1,f2 in tqdm(pairs):
-        i,j = int(f1), int(f2)
-        path_f1 = f"{folder}/{f1}"
-        path_f2 = f"{folder}/{f2}"
-        distances[i,j] = distance_func(path_f1,path_f2)
-        distances[j,i] = distances[i,j]
+        for i,j,d in tqdm(results, total=len(pairs)):
+            distances[i,j] = d
+            distances[j,i] = d
 
 
     rips = Rips(maxdim = maxdim)

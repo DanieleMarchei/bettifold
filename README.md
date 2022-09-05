@@ -12,6 +12,7 @@ Clone this repository into your working directory and install the following pack
 - ripser
 - sklearn
 - tqdm
+- pathos
 
 Then download AspraLign from [here](https://github.com/bdslab/aspralign) and put the executable jar ``ASPRAlign.jar'' into the same folder of bettifold.py.
 
@@ -38,7 +39,8 @@ bettifold(seq,
           folder              = "output",
           n_foldings          = "all",
           use_mds             = False,
-          maxdim              = 2
+          maxdim              = 2,
+          n_processes         = None
           )
 ```
 Parametrs:
@@ -50,6 +52,7 @@ Parametrs:
 - ```n_foldings``` ( *"all" | int* ) : The number of folding to be generated. If "all", it will generate all foldings that satisfy the constraints.
 - ```use_mds``` ( *bool* ) : If True, MultiDimensional Scaling will be performed on the distance matrix before the Rips filtration. If False, the distance matrix will be fed directly into ripser.
 - ```maxdim``` ( *int* ) : The number of homology classes to be calculated. We calculate them using the Ripser package<sup>2</sup>.
+- ```n_processes``` ( *None | int* ) : The number of cores to be used. If None, the max number of available cores will be used.
 
 
 <sup>1</sup>[https://github.com/bdslab/aspralign](https://github.com/bdslab/aspralign)

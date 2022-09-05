@@ -1,5 +1,6 @@
 from dataclasses import dataclass
-from multiprocessing import Pool
+# from multiprocessing import Pool
+from pathos.multiprocessing import ProcessingPool as Pool
 
 
 @dataclass
@@ -9,6 +10,9 @@ class Bond:
 
     def __repr__(self):
         return f"({self.idxs[0]},{self.idxs[1]})"
+    
+    def __hash__(self) -> int:
+        return hash(self.idxs)
 
 
 
@@ -61,7 +65,7 @@ def max_bonds(n):
 
 # ------------
 
-def _is_valid_folding(folding, bond_constraints, folding_constraints):
+def _is_valid_folding(bond_constraints, folding_constraints, folding):
 
     for cons in folding_constraints:
         if not cons(folding):
@@ -82,18 +86,30 @@ def _is_valid_folding(folding, bond_constraints, folding_constraints):
     
     return True
 
-
-def _all_foldings(seq, bond_constraints, folding_constraints):
+def _all_foldings_k(seq, bond_constraints, folding_constraints, possible_edges, k):
     from itertools import combinations
+
+    foldings = combinations(possible_edges, k)
+    vaild_foldings = set()
+    for f in foldings:
+        _f = tuple([Bond((i,j), (seq[i-1], seq[j-1])) for i,j in f])
+        if _is_valid_folding(bond_constraints, folding_constraints, _f):
+            vaild_foldings.add(_f)
+    return vaild_foldings
+
+def _all_foldings(seq, bond_constraints, folding_constraints, n_processes = None):
+    from itertools import combinations
+    from functools import partial
 
     n = len(seq)
     possible_edges = list(combinations(range(1,n+1), 2))
-    for k in range(1, n//2 + 1):
-        foldings = combinations(possible_edges, k)
-        for f in foldings:
-            _f = tuple([Bond((i,j), (seq[i-1], seq[j-1])) for i,j in f])
-            if _is_valid_folding(_f, bond_constraints, folding_constraints):
-                yield _f
+    _func = partial(_all_foldings_k, seq, bond_constraints, folding_constraints, possible_edges)
+    with Pool(n_processes) as pool:
+        results = pool.imap(_func, range(1, n//2 + 1))
+        for valid_foldings in results:
+            for f in valid_foldings:
+                yield f
+
 
 def _sample_foldings(n_samples):
     raise NotImplementedError("Random sampling of foldings has not been implemented yet.")
@@ -173,7 +189,7 @@ def bettifold(seq,
 
     with Pool(n_processes) as p:
         _d = partial(_dist, distance_func, folder)
-        results = p.imap_unordered(_d, pairs)
+        results = p.imap(_d, pairs)
 
         for i,j,d in tqdm(results, total=len(pairs)):
             distances[i,j] = d

@@ -163,7 +163,7 @@ def bettifold(seq,
 
     print("COMPUTING FOLDINGS")
 
-    for i, folding in tqdm(enumerate(sample_foldings(seq, bond_constraints, folding_constraints))):
+    for i, folding in tqdm(enumerate(sample_foldings(seq, bond_constraints, folding_constraints, n_processes))):
         with open(f"{folder}/{i}", "w") as f:
             f.write(seq + "\n")
             bonds = ";".join([str(b).replace(" ","") for b in folding])

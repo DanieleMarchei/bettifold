@@ -1,5 +1,14 @@
 from dataclasses import dataclass
 from pathos.multiprocessing import ProcessingPool as Pool
+import os
+import shutil
+import numpy as np
+from tqdm import tqdm
+from sklearn.manifold import MDS
+from ripser import Rips
+from functools import partial
+import subprocess
+from itertools import combinations
 
 
 @dataclass
@@ -30,7 +39,6 @@ WATSON_CREEK = {
 }
 
 def aspra(file1, file2):
-    import subprocess
 
     command = f"java -jar ASPRAlign.jar -a {file1} {file2} -d"
 
@@ -65,7 +73,6 @@ def max_bonds(n):
 # ------------
 
 def _is_valid_folding(bond_constraints, folding_constraints, folding):
-
     for cons in folding_constraints:
         if not cons(folding):
             return False
@@ -86,8 +93,6 @@ def _is_valid_folding(bond_constraints, folding_constraints, folding):
     return True
 
 def _all_foldings_k(seq, bond_constraints, folding_constraints, possible_edges, k):
-    from itertools import combinations
-
     foldings = combinations(possible_edges, k)
     vaild_foldings = set()
     for f in foldings:
@@ -98,9 +103,6 @@ def _all_foldings_k(seq, bond_constraints, folding_constraints, possible_edges, 
     return vaild_foldings
 
 def _all_foldings(seq, bond_constraints, folding_constraints, n_processes = None):
-    from itertools import combinations
-    from functools import partial
-
     n = len(seq)
     possible_edges = list(combinations(range(1,n+1), 2))
     _func = partial(_all_foldings_k, seq, bond_constraints, folding_constraints, possible_edges)
@@ -137,15 +139,6 @@ def bettifold(seq,
               maxdim = 2,
               n_processes = None):
 
-    import os
-    import shutil
-    import numpy as np
-    from tqdm import tqdm
-    from sklearn.manifold import MDS
-    from ripser import Rips
-    from functools import partial
-
-    
     if n_foldings == "all":
         sample_foldings = _all_foldings
     elif type(n_foldings) == int:

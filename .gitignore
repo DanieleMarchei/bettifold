@@ -8,3 +8,4 @@ __pycache__/
 dgms.pkl
 .gitignore
 barcodes.py
+my_foldings/

@@ -1,5 +1,3 @@
-ASPRAlign-config.txt
-ASPRAlign.jar
 output/
 test/
 rna-test/
@@ -9,4 +7,3 @@ dgms.pkl
 .gitignore
 barcodes.py
 my_foldings/
-all_pair_aspra_distances.jar

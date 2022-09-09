@@ -9,11 +9,10 @@ def my_pairwise_distances(foldings):
 
     return np.zeros((10,10))
 
-foldings = bf.enumerate_foldings("UCCACAGGCAG",
+foldings = bf.get_foldings("UCCACAGGCAG",
                        n_foldings = "all",
                        bond_constraints = [bf.watson_creek, bf.min_bond_len(4)],
-                       folding_constraints = [bf.min_bonds(2), bf.max_bonds(5)],
-                       folder = None
+                       folding_constraints = [bf.min_bonds(2), bf.max_bonds(5)]
                        )
 
 X = my_pairwise_distances(foldings)

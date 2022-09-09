@@ -112,6 +112,41 @@ def _all_foldings(seq, bond_constraints, folding_constraints, n_processes = None
             for f in valid_foldings:
                 yield f
 
+def enumerate_foldings(seq, n_foldings, 
+            bond_constraints = [watson_creek_wobble, min_bond_len(4)],
+            folding_constraints = [],
+            folder = None,
+            n_processes = None):
+
+    if n_foldings == "all":
+        sample_foldings = _all_foldings
+    elif type(n_foldings) == int:
+        sample_foldings = _sample_foldings(n_foldings)
+    else:
+        raise TypeError("The argument 'sampling' can only take values in (\"all\" | int).")
+
+
+    if folder is not None:
+        if os.path.exists(folder):
+            shutil.rmtree(folder)
+    
+        os.mkdir(folder)
+        
+        print("COMPUTING FOLDINGS")
+    
+        for i, folding in tqdm(enumerate(sample_foldings(seq, bond_constraints, folding_constraints, n_processes))):
+            with open(f"{folder}/{i}", "w") as f:
+                f.write(seq + "\n")
+                bonds = ";".join([str(b).replace(" ","") for b in folding])
+                f.write(bonds)
+    else:
+        for i, folding in tqdm(enumerate(sample_foldings(seq, bond_constraints, folding_constraints, n_processes))):
+            yield folding
+
+    
+
+    
+
 
 def _sample_foldings(n_samples):
     raise NotImplementedError("Random sampling of foldings has not been implemented yet.")
@@ -139,28 +174,11 @@ def bettifold(seq,
               maxdim = 2,
               n_processes = None):
 
-    if n_foldings == "all":
-        sample_foldings = _all_foldings
-    elif type(n_foldings) == int:
-        sample_foldings = _sample_foldings(n_foldings)
-    else:
-        raise TypeError("The argument 'sampling' can only take values in (\"all\" | int).")
-
-
-    if os.path.exists(folder):
-        shutil.rmtree(folder)
-    
-    os.mkdir(folder)
-
-
-
-    print("COMPUTING FOLDINGS")
-
-    for i, folding in tqdm(enumerate(sample_foldings(seq, bond_constraints, folding_constraints, n_processes))):
-        with open(f"{folder}/{i}", "w") as f:
-            f.write(seq + "\n")
-            bonds = ";".join([str(b).replace(" ","") for b in folding])
-            f.write(bonds)
+    enumerate_foldings(seq, n_foldings, 
+            bond_constraints=bond_constraints, 
+            folding_constraints=folding_constraints, 
+            folder = folder,
+            n_processes=n_processes)
 
 
     print("COMPUTING DISTANCES")

@@ -5,6 +5,5 @@ protein-test/
 __pycache__/
 dgms.pkl
 .gitignore
-barcodes.py
 my_foldings/
 rna-test-samples/

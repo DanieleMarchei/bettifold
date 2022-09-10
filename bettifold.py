@@ -200,13 +200,9 @@ def bettifold(seq,
     distances = np.zeros((n_files, n_files))
 
     pairs = set()
-    for f1 in files:
-        for f2 in files:
-            if f1 == f2: continue
-            if (f1, f2) in pairs or (f2,f1) in pairs:
-                continue
-
-            pairs.add((f1,f2))
+    for f1 in range(n_files):
+        for f2 in range(f1 + 1, n_files):
+            pairs.add((str(f1),str(f2)))
     
 
     with Pool(n_processes) as p:

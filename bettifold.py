@@ -196,19 +196,24 @@ def _random_folding(seq):
             n1,n2 = n2,n1
         f.append(Bond((n1,n2),(seq[n1-1],seq[n2-1])))
     
+    f.sort(key = lambda bond : bond.idxs[0])
+    
     return tuple(f)
 
 
-def _sample_foldings(n_samples):
+def _sample_foldings(n_samples, stop_after_n_misses = 100000):
     def _sample(seq, bond_constraints, folding_constraints, n_processes): 
       foldings_found = set()
       _is_valid = partial(_is_valid_folding, bond_constraints, folding_constraints)
-      
-      while len(foldings_found) < n_samples:
+      n_misses = 0
+      while len(foldings_found) < n_samples and n_misses < stop_after_n_misses:
         f = _random_folding(seq)
         if _is_valid(f) and f not in foldings_found:
             foldings_found.add(f)
+            n_misses = 0
             yield f
+        else:
+            n_misses += 1
 
     return _sample
 

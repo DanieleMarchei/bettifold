@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from barcodes import Barcode
 
 output = bf.bettifold("UCCACAGGCAG",
-                       n_foldings=20,
+                       n_foldings=60,
                        bond_constraints = [bf.watson_creek, bf.min_bond_len(4)],
                        folding_constraints = [bf.min_bonds(2), bf.max_bonds(5)],
                        folder = "rna-test-samples",

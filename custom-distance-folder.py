@@ -13,6 +13,7 @@ def my_pairwise_distances():
     n_files = len(os.listdir("my_foldings/"))
     distances = np.zeros((n_files,n_files))
 
+    # last element is an empty line, so we delete it
     del lines[-1]
     
     for line in lines:

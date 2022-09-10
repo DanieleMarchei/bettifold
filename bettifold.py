@@ -9,6 +9,7 @@ from ripser import Rips
 from functools import partial
 import subprocess
 from itertools import combinations
+from random import randint, choice
 
 
 @dataclass
@@ -157,13 +158,59 @@ def get_foldings(seq, n_foldings,
     for i, folding in tqdm(enumerate(sample_foldings(seq, bond_constraints, folding_constraints, n_processes))):
         yield folding
 
+class _ListDict(object):
+    #FROM : https://stackoverflow.com/questions/15993447/python-data-structure-for-efficient-add-remove-and-random-choice
+
+    def __init__(self, items):
+        self.item_to_position = {}
+        self.items = []
+        # for extra efficiency, we are assuming no two items are equal
+        for item in items:
+            self.items.append(item)
+            self.item_to_position[item] = len(self.items)-1
+
+    def remove_item(self, item):
+        position = self.item_to_position.pop(item)
+        last_item = self.items.pop()
+        if position != len(self.items):
+            self.items[position] = last_item
+            self.item_to_position[last_item] = position
+
+    def choose_random_item(self):
+        return choice(self.items)
+    
+    def pop_random(self):
+        item = self.choose_random_item()
+        self.remove_item(item)
+        return item
+
+def _random_folding(seq):
+    n = len(seq)
+    n_bonds = randint(1, n // 2)
+    available_nucl = _ListDict(range(1,n+1))
+    f = []
+    for _ in range(n_bonds):
+        n1 = available_nucl.pop_random()
+        n2 = available_nucl.pop_random()
+        if n1 > n2:
+            n1,n2 = n2,n1
+        f.append(Bond((n1,n2),(seq[n1-1],seq[n2-1])))
+    
+    return tuple(f)
 
 
 def _sample_foldings(n_samples):
-    raise NotImplementedError("Random sampling of foldings has not been implemented yet.")
-    # def _sample(rna, bond_constraints, folding_constraints): 
-    #   pass
-    # return _sample
+    def _sample(seq, bond_constraints, folding_constraints, n_processes): 
+      foldings_found = set()
+      _is_valid = partial(_is_valid_folding, bond_constraints, folding_constraints)
+      
+      while len(foldings_found) < n_samples:
+        f = _random_folding(seq)
+        if _is_valid(f) and f not in foldings_found:
+            foldings_found.add(f)
+            yield f
+
+    return _sample
 
 
 def _dist(dist_func, folder, files):

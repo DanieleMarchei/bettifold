@@ -185,7 +185,7 @@ def bettifold(seq,
               maxdim = 2,
               n_processes = None):
 
-    enumerate_foldings(seq, n_foldings, 
+    save_foldings(seq, n_foldings, 
             bond_constraints=bond_constraints, 
             folding_constraints=folding_constraints, 
             folder = folder,

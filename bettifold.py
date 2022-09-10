@@ -113,7 +113,7 @@ def _all_foldings(seq, bond_constraints, folding_constraints, n_processes = None
             for f in valid_foldings:
                 yield f
 
-def save_foldings(seq, n_foldings, 
+def save_foldings(seq, n_foldings, stop_after_n_misses = 100000, 
             bond_constraints = [watson_creek_wobble, min_bond_len(4)],
             folding_constraints = [],
             folder = None,
@@ -123,7 +123,7 @@ def save_foldings(seq, n_foldings,
     if n_foldings == "all":
         sample_foldings = _all_foldings
     elif type(n_foldings) == int:
-        sample_foldings = _sample_foldings(n_foldings)
+        sample_foldings = _sample_foldings(n_foldings, stop_after_n_misses)
     else:
         raise TypeError("The argument 'sampling' can only take values in (\"all\" | int).")
 
@@ -233,6 +233,7 @@ def bettifold(seq,
               distance_func = aspra,
               folder = "output",
               n_foldings = "all",
+              stop_after_n_misses = 100000,
               use_mds = False,
               maxdim = 2,
               n_processes = None):
